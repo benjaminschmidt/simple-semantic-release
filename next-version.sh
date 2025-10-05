@@ -1,65 +1,65 @@
 #!/bin/bash
-SEMANTIC_VERSIONING_REGEX="^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$"
-CONVENTIONAL_COMMIT_REGEX="^(build|chore|ci|docs|feat|fix|refactor|style|test)(\((.+)\))?(\!)?:\s([^\s].*)$"
+semantic_versioning_regex="^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$"
+conventional_commit_regex="^(build|chore|ci|docs|feat|fix|refactor|style|test)(\((.+)\))?(\!)?:\s([^\s].*)$"
 
-LAST_TAG=$(git describe --abbrev=0 --tags 2>&1)
-UPDATED="false"
+last_tag=$(git describe --abbrev=0 --tags 2>&1)
+updated="false"
 
-if [[ $LAST_TAG =~ $SEMANTIC_VERSIONING_REGEX ]]
+if [[ $last_tag =~ $semantic_versioning_regex ]]
 then
-  MAJOR=${BASH_REMATCH[1]}
-  MINOR=${BASH_REMATCH[2]}
-  PATCH=${BASH_REMATCH[3]}
-  echo "Starting with $MAJOR.$MINOR.$PATCH"
+  major=${BASH_REMATCH[1]}
+  minor=${BASH_REMATCH[2]}
+  patch=${BASH_REMATCH[3]}
+  echo "Starting with $major.$minor.$patch"
 else
-  echo "Last tag has incorrect versioning format: $LAST_TAG"
+  echo "Last tag has incorrect versioning format: $last_tag"
   exit 1
 fi
 
-LAST_TAGGED_COMMIT=$(git rev-list -n 1 "$LAST_TAG")
-COMMITS_SINCE_LAST_TAG="$(git rev-list "$LAST_TAGGED_COMMIT"..HEAD --reverse)"
+last_tagged_commit=$(git rev-list -n 1 "$last_tag")
+commits_since_last_tag="$(git rev-list "$last_tagged_commit"..HEAD --reverse)"
 
-for COMMIT in $COMMITS_SINCE_LAST_TAG
+for commit in $commits_since_last_tag
 do
-  MESSAGE=$(git log -n 1 "$COMMIT" --pretty=%s)
+  message=$(git log -n 1 "$commit" --pretty=%s)
 
-  if [[ $MESSAGE =~ $CONVENTIONAL_COMMIT_REGEX ]]
+  if [[ $message =~ $conventional_commit_regex ]]
   then
-    TYPE=${BASH_REMATCH[1]}
-    BREAKING=${BASH_REMATCH[4]}
+    type=${BASH_REMATCH[1]}
+    breaking=${BASH_REMATCH[4]}
   else
-    echo "$MESSAGE -> Commit message does not match conventional commit format!"
+    echo "$message -> Commit message does not match conventional commit format!"
     exit 1
   fi
 
-  if [[ $BREAKING == "!" ]]
+  if [[ $breaking == "!" ]]
   then
-    MAJOR=$((MAJOR + 1))
-    MINOR=0
-    PATCH=0
-    UPDATED="true"
-    echo "$MESSAGE -> $MAJOR.$MINOR.$PATCH"
+    major=$((major + 1))
+    minor=0
+    patch=0
+    updated="true"
+    echo "$message -> $major.$minor.$patch"
     continue
   fi
 
-  case $TYPE in
+  case $type in
     build|chore|ci|fix|refactor)
-      PATCH=$((PATCH + 1))
-      UPDATED="true"
-      echo "$MESSAGE -> $MAJOR.$MINOR.$PATCH"
+      patch=$((patch + 1))
+      updated="true"
+      echo "$message -> $major.$minor.$patch"
       ;;
     feat)
-      MINOR=$((MINOR + 1))
-      PATCH=0
-      UPDATED="true"
-      echo "$MESSAGE -> $MAJOR.$MINOR.$PATCH"
+      minor=$((minor + 1))
+      patch=0
+      updated="true"
+      echo "$message -> $major.$minor.$patch"
       ;;
     docs|style|test)
-      echo "$MESSAGE -> $MAJOR.$MINOR.$PATCH"
+      echo "$message -> $major.$minor.$patch"
       ;;
   esac
 
 done
 
-echo "updated=$UPDATED"
-echo "version=$MAJOR.$MINOR.$PATCH"
+echo "updated=$updated"
+echo "version=$major.$minor.$patch"

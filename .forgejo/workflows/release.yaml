@@ -14,21 +14,6 @@ jobs:
         with:
           fetch-depth: 0
       - name: Obtain next version
-        id: next-version
         uses: ./
-      - name: Create release
-        if: ${{ steps.next-version.outputs.updated == 'true'}}
-        run: |
-          curl --request POST \
-          --header 'content-type: application/json' \
-          --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' \
-          --data "{
-            \"body\": \"\",
-            \"draft\": false,
-            \"name\": \"${{ steps.next-version.outputs.version }}\",
-            \"prerelease\": false,
-            \"tag_name\": \"${{ steps.next-version.outputs.version }}\",
-            \"target_commitish\": \"$( git rev-list -n 1 HEAD )\"
-            }" \
-          --fail \
-          ${{ github.server_url }}/api/v1/repos/${{ github.repository }}/releases
+        with:
+          create-release: true

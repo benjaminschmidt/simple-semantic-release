@@ -1,18 +1,38 @@
 ---
 name: "Next version action"
 description: "Returns the next semantic release version according to conventional commit messages"
+inputs:
+  create-release:
+    description: "If true, also creates a release with the new version number. Only works on forgejo, not github."
+    required: false
+    default: "false"
 outputs:
-  updated:
-    description: "Whether the version changed"
-    value: ${{ steps.script.outputs.updated }}
   version:
     description: "Next version based on conventional commits since last tagged commit"
     value: ${{ steps.script.outputs.version }}
 runs:
   using: "composite"
   steps:
-    - id: script
+    - name: Run script to determine next version
+      id: script
+      shell: bash
       run: |
         ${{ github.action_path }}/next-version.sh | tee output.txt
         cat output.txt | grep -e updated= -e version= >> "$GITHUB_OUTPUT"
+    - name: Create release if necessary and possible
+      if: ${{ steps.script.outputs.updated == 'true' && env.FORGEJO_ACTIONS == 'true' && inputs.create-release == 'true' }}
       shell: bash
+      run: |
+        curl --request POST \
+        --header 'content-type: application/json' \
+        --header 'Authorization: token ${{ forge.token }}' \
+        --data "{
+          \"body\": \"\",
+          \"draft\": false,
+          \"name\": \"${{ steps.script.outputs.version }}\",
+          \"prerelease\": false,
+          \"tag_name\": \"${{ steps.script.outputs.version }}\",
+          \"target_commitish\": \"$( git rev-list -n 1 HEAD )\"
+          }" \
+        --fail \
+        ${{ forge.api_url }}/repos/${{ forge.repository }}/releases
