@@ -1,0 +1,19 @@
+---
+name: Pull request pipeline
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  check-conventional-commits:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Obtain next version
+        uses: ./
+        with:
+          create-release: false
