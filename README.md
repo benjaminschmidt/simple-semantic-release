@@ -55,6 +55,7 @@ jobs:
         uses: https://github.com//phaib/simple-semantic-release@latest
         with:
           create-release: true
+          token: ${{ forge.token }}
 ```
 
 # Which type creates which version change

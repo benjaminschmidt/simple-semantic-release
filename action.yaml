@@ -6,6 +6,9 @@ inputs:
     description: "If true, also creates a release with the new version number. Only works on forgejo, not github."
     required: false
     default: "false"
+  token:
+    description: "Token used to create the release if that option has been chosen."
+    required: false
 outputs:
   version:
     description: "Next version based on conventional commits since last tagged commit"
@@ -25,7 +28,7 @@ runs:
       run: |
         curl --request POST \
         --header 'content-type: application/json' \
-        --header 'Authorization: token ${{ forge.token }}' \
+        --header 'Authorization: token ${{ inputs.token }}' \
         --data "{
           \"body\": \"\",
           \"draft\": false,
