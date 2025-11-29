@@ -25,7 +25,9 @@ runs:
     - name: Create release notes
       id: notes
       shell: bash
-      run: echo "notes=$(${{ github.action_path }}/notes.sh)" >> "$GITHUB_OUTPUT"
+      run: |
+        notes=$(${{ github.action_path }}/notes.sh)
+        echo "notes=${notes//$'\n'/\\n}" >> "$GITHUB_OUTPUT"
     - name: Create release if necessary and possible
       if: ${{ steps.script.outputs.updated == 'true' && env.FORGEJO_ACTIONS == 'true' && inputs.create-release == 'true' }}
       shell: bash
