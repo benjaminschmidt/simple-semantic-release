@@ -22,6 +22,10 @@ runs:
       run: |
         ${{ github.action_path }}/next-version.sh | tee output.txt
         cat output.txt | grep -e updated= -e version= >> "$GITHUB_OUTPUT"
+    - name: Create release notes
+      id: notes
+      shell: bash
+      run: echo "notes=$(${{ github.action_path }}/notes.sh)" >> "$GITHUB_OUTPUT"
     - name: Create release if necessary and possible
       if: ${{ steps.script.outputs.updated == 'true' && env.FORGEJO_ACTIONS == 'true' && inputs.create-release == 'true' }}
       shell: bash
@@ -30,7 +34,7 @@ runs:
         --header 'content-type: application/json' \
         --header 'Authorization: token ${{ inputs.token }}' \
         --data "{
-          \"body\": \"\",
+          \"body\": \"${{ steps.notes.outputs.notes }}\",
           \"draft\": false,
           \"name\": \"${{ steps.script.outputs.version }}\",
           \"prerelease\": false,
