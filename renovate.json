@@ -1,3 +1,6 @@
 {
-  "$schema": "https://docs.renovatebot.com/renovate-schema.json"
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "minimumReleaseAge": "3 days",
+  "prHourlyLimit": 10,
+  "prConcurrentLimit": 10
 }
