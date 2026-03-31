@@ -1,16 +1,17 @@
 #!/bin/bash
 semantic_versioning_regex="^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$"
-conventional_commit_regex="^(build|chore|ci|docs|feat|fix|refactor|style|test)(\((.+)\))?(\!)?:\s([^\s].*)$"
+conventional_commit_regex="^(build|chore|ci|docs|feat|fix|refactor|revert|style|test)(\((.+)\))?(\!)?:\s([^\s].*)$"
 
 last_tag=$(git describe --abbrev=0 --tags 2>&1)
-updated="false"
+overall_type=""
+updated=false
 
 if [[ $last_tag =~ $semantic_versioning_regex ]]
 then
   major=${BASH_REMATCH[1]}
   minor=${BASH_REMATCH[2]}
   patch=${BASH_REMATCH[3]}
-  echo "Starting with $major.$minor.$patch"
+  echo "Current version: $major.$minor.$patch"
 else
   echo "Last tag has incorrect versioning format: $last_tag"
   exit 1
@@ -34,32 +35,50 @@ do
 
   if [[ $breaking == "!" ]]
   then
-    major=$((major + 1))
-    minor=0
-    patch=0
-    updated="true"
-    echo "$message -> $major.$minor.$patch"
+    echo "$message -> major change"
+    overall_type="major"
     continue
   fi
 
   case $type in
-    build|chore|ci|fix|refactor)
-      patch=$((patch + 1))
-      updated="true"
-      echo "$message -> $major.$minor.$patch"
+    feat|revert)
+      echo "$message -> minor change"
+      if [[ $overall_type != "major" ]]
+      then
+        overall_type="minor"
+      fi
       ;;
-    feat)
-      minor=$((minor + 1))
-      patch=0
-      updated="true"
-      echo "$message -> $major.$minor.$patch"
+    build|chore|ci|fix|refactor)
+      echo "$message -> patch change"
+      if [[ $overall_type == "" ]]
+      then
+        overall_type="patch"
+      fi
       ;;
     docs|style|test)
-      echo "$message -> $major.$minor.$patch"
+      echo "$message -> no change"
       ;;
   esac
 
 done
+
+case $overall_type in
+  major)
+    major=$((major + 1))
+    minor=0
+    patch=0
+    updated=true
+    ;;
+  minor)
+    minor=$((minor + 1))
+    patch=0
+    updated=true
+    ;;
+  patch)
+    patch=$((patch + 1))
+    updated=true
+    ;;
+esac
 
 echo "updated=$updated"
 echo "version=$major.$minor.$patch"
