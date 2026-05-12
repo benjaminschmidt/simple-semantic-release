@@ -1,5 +1,8 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "helpers:pinGitHubActionDigests"
+  ],
   "minimumReleaseAge": "14 days",
   "prHourlyLimit": 10,
   "prConcurrentLimit": 10
