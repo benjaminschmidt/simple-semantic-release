@@ -23,11 +23,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v5
+        uses: actions/checkout@latest
         with:
           fetch-depth: 0
       - name: Obtain next version
-        uses: https://github.com/phaib/simple-semantic-release@latest
+        uses: https://github.com/benjaminschmidt/simple-semantic-release@latest
         with:
           create-release: false
 ```
@@ -48,11 +48,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v5
+        uses: actions/checkout@latest
         with:
           fetch-depth: 0
       - name: Obtain next version
-        uses: https://github.com//phaib/simple-semantic-release@latest
+        uses: https://github.com/benjaminschmidt/simple-semantic-release@latest
         with:
           create-release: true
           token: ${{ forge.token }}
