@@ -20,28 +20,14 @@ runs:
       id: script
       shell: bash
       run: |
-        ${{ github.action_path }}/next-version.sh | tee output.txt
-        cat output.txt | grep -e updated= -e version= >> "$GITHUB_OUTPUT"
-    - name: Create release notes
-      id: notes
-      shell: bash
-      run: |
-        notes=$(${{ github.action_path }}/notes.sh)
-        echo "notes=${notes//$'\n'/\\n}" >> "$GITHUB_OUTPUT"
+        "${{ github.action_path }}/next-version.sh" | tee output.txt
+        "${{ github.action_path }}/extract-action-outputs.sh" output.txt >> "$GITHUB_OUTPUT"
     - name: Create release if necessary and possible
       if: ${{ steps.script.outputs.updated == 'true' && env.FORGEJO_ACTIONS == 'true' && inputs.create-release == 'true' }}
+      env:
+        RELEASE_VERSION: ${{ steps.script.outputs.version }}
+        FORGEJO_API_URL: ${{ forge.api_url }}
+        FORGEJO_REPOSITORY: ${{ forge.repository }}
+        FORGEJO_TOKEN: ${{ inputs.token }}
       shell: bash
-      run: |
-        curl --request POST \
-        --header 'content-type: application/json' \
-        --header 'Authorization: token ${{ inputs.token }}' \
-        --data "{
-          \"body\": \"${{ steps.notes.outputs.notes }}\",
-          \"draft\": false,
-          \"name\": \"${{ steps.script.outputs.version }}\",
-          \"prerelease\": false,
-          \"tag_name\": \"${{ steps.script.outputs.version }}\",
-          \"target_commitish\": \"$( git rev-list -n 1 HEAD )\"
-          }" \
-        --fail \
-        ${{ forge.api_url }}/repos/${{ forge.repository }}/releases
+      run: "${{ github.action_path }}/create-release.sh"
